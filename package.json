@@ -33,7 +33,7 @@
     "jose": "^6.0.11",
     "lucide-react": "^0.511.0",
     "mongoose": "^9.0.1",
-    "next": "15.4.0-canary.47",
+    "next": "16.0.8",
     "postcss": "^8.5.3",
     "postgres": "^3.4.7",
     "radix-ui": "^1.4.2",
