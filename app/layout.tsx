@@ -1,19 +1,19 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import { Manrope } from 'next/font/google';
 import { getUser, getTeamForUser } from '@/lib/db/queries';
 import { SWRConfig } from 'swr';
 
 export const metadata: Metadata = {
   title: 'AtomicBonds',
-  description: 'Get started quickly with Next.js, Postgres, and Stripe.'
+  description: 'Get started quickly with Next.js, Postgres, and Stripe.',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export const viewport: Viewport = {
   maximumScale: 1
 };
-
-const manrope = Manrope({ subsets: ['latin'] });
 
 export default function RootLayout({
   children
@@ -26,7 +26,15 @@ export default function RootLayout({
       className="bg-white dark:bg-gray-950 text-black dark:text-white"
       suppressHydrationWarning
     >
-      <body className={`min-h-[100dvh] bg-gray-50 ${manrope.className}`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="min-h-[100dvh] bg-gray-50 font-inter">
         <SWRConfig
           value={{
             fallback: {
