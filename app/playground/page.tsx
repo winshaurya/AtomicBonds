@@ -27,6 +27,18 @@ export default function PlaygroundPage() {
   const [canDownload, setCanDownload] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [parameters, setParameters] = useState<ShapeParameters>({
+    type: 'cylinder',
+    radius: 50,
+    height: 100,
+    width: 100,
+    depth: 100,
+    teeth: 12,
+  });
+
+  const updateParameter = (key: keyof ShapeParameters, value: number | string) => {
+    setParameters(prev => ({ ...prev, [key]: value }));
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -108,18 +120,15 @@ export default function PlaygroundPage() {
       </header>
 
       <div className="flex flex-1 relative">
-        {/* Mobile Sidebar Overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+        {/* Main Viewer */}
+        <div className="flex-1 p-4 md:p-6">
+          <div className="h-full bg-white rounded-lg shadow-sm border border-gray-200">
+            <Viewer modelUrl={modelUrl} loading={loading} />
+          </div>
+        </div>
 
-        {/* Sidebar */}
-        <div className={`${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed md:relative md:translate-x-0 z-50 md:z-auto w-80 md:w-80 bg-white border-r border-gray-200 p-4 md:p-6 overflow-y-auto h-full md:h-auto transition-transform duration-300 ease-in-out`}>
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto">
           <div className="space-y-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Shape Editor</h2>
@@ -148,11 +157,151 @@ export default function PlaygroundPage() {
           </div>
         </div>
 
-        {/* Main Viewer */}
-        <div className="flex-1 p-4 md:p-6">
-          <div className="h-full bg-white rounded-lg shadow-sm border border-gray-200">
-            <Viewer modelUrl={modelUrl} loading={loading} />
+        {/* Mobile Compact Dock */}
+        <div className="md:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-white rounded-full shadow-lg border border-gray-200 px-4 py-2 flex items-center space-x-3">
+            {/* Shape Type Selector */}
+            <select
+              value={parameters.type}
+              onChange={(e) => updateParameter('type', e.target.value as ShapeParameters['type'])}
+              className="text-xs bg-transparent border-none outline-none font-medium text-gray-700"
+            >
+              <option value="cylinder">Cylinder</option>
+              <option value="cube">Cube</option>
+              <option value="gear">Gear</option>
+            </select>
+
+            {/* Quick Controls */}
+            <div className="flex items-center space-x-2">
+              {parameters.type === 'cylinder' && (
+                <>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs text-gray-500">R</span>
+                    <input
+                      type="range"
+                      min="10"
+                      max="100"
+                      step="5"
+                      value={parameters.radius || 50}
+                      onChange={(e) => updateParameter('radius', parseInt(e.target.value))}
+                      className="w-12 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs text-gray-500">H</span>
+                    <input
+                      type="range"
+                      min="20"
+                      max="200"
+                      step="10"
+                      value={parameters.height || 100}
+                      onChange={(e) => updateParameter('height', parseInt(e.target.value))}
+                      className="w-12 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                </>
+              )}
+
+              {parameters.type === 'cube' && (
+                <>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs text-gray-500">W</span>
+                    <input
+                      type="range"
+                      min="20"
+                      max="200"
+                      step="10"
+                      value={parameters.width || 100}
+                      onChange={(e) => updateParameter('width', parseInt(e.target.value))}
+                      className="w-8 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs text-gray-500">H</span>
+                    <input
+                      type="range"
+                      min="20"
+                      max="200"
+                      step="10"
+                      value={parameters.height || 100}
+                      onChange={(e) => updateParameter('height', parseInt(e.target.value))}
+                      className="w-8 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs text-gray-500">D</span>
+                    <input
+                      type="range"
+                      min="20"
+                      max="200"
+                      step="10"
+                      value={parameters.depth || 100}
+                      onChange={(e) => updateParameter('depth', parseInt(e.target.value))}
+                      className="w-8 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                </>
+              )}
+
+              {parameters.type === 'gear' && (
+                <>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs text-gray-500">R</span>
+                    <input
+                      type="range"
+                      min="20"
+                      max="100"
+                      step="5"
+                      value={parameters.radius || 50}
+                      onChange={(e) => updateParameter('radius', parseInt(e.target.value))}
+                      className="w-8 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs text-gray-500">T</span>
+                    <input
+                      type="range"
+                      min="6"
+                      max="50"
+                      step="1"
+                      value={parameters.teeth || 12}
+                      onChange={(e) => updateParameter('teeth', parseInt(e.target.value))}
+                      className="w-8 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Generate Button */}
+            <Button
+              onClick={() => handleGenerate(parameters)}
+              disabled={loading}
+              size="sm"
+              className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 text-xs rounded-full"
+            >
+              {loading ? '...' : 'Generate'}
+            </Button>
+
+            {/* Download Button */}
+            {canDownload && (
+              <Button
+                onClick={handleDownload}
+                variant="outline"
+                size="sm"
+                className="text-xs px-2 py-1 rounded-full"
+              >
+                <Download className="h-3 w-3" />
+              </Button>
+            )}
           </div>
+
+          {/* Error Display */}
+          {error && (
+            <div className="mt-2 bg-red-50 border border-red-200 rounded-lg p-2 max-w-xs mx-auto">
+              <p className="text-xs text-red-600 text-center">{error}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
