@@ -1,6 +1,6 @@
 # AtomicBonds
 
-A SaaS starter project built with Next.js, Supabase, Drizzle, and Stripe.
+AtomicBonds is a SaaS project built with Next.js, Supabase, Drizzle, and Stripe.
 
 ## Features
 

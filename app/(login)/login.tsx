@@ -1,14 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CircleIcon, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { handleUserAuth } from './actions';
+import { ensureUserExists } from './actions';
+import { Chrome } from 'lucide-react';
 
 export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
   const [email, setEmail] = useState('');
@@ -16,6 +17,15 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+
+  // Check for error in URL params (for OAuth failures)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorParam = urlParams.get('error');
+    if (errorParam === 'oauth_failed') {
+      setError('Google sign-in failed. Please try again or use email/password.');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,9 +41,10 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
 
         if (error) throw error;
 
-        // User creation will be handled by the auth callback route
+        // Ensure user exists in our database
+        await ensureUserExists();
 
-        router.push('/dashboard');
+        router.push('/playground');
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -54,6 +65,27 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/callback?next=/playground`,
+        },
+      });
+
+      if (error) throw error;
+
+      // OAuth will handle the redirect automatically
+    } catch (error: any) {
+      setError(error.message);
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-[100dvh] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -68,6 +100,28 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Google Sign In Button */}
+        <div className="mb-6">
+          <Button
+            type="button"
+            onClick={handleGoogleSignIn}
+            className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-full shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+            disabled={loading}
+          >
+            <Chrome className="mr-2 h-4 w-4" />
+            Continue with Google
+          </Button>
+        </div>
+
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-gray-50 text-gray-500">Or continue with email</span>
+          </div>
+        </div>
+
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <Label

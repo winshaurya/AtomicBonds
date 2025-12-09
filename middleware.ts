@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
-const protectedRoutes = '/dashboard';
+const protectedRoutes = '/playground';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -40,9 +40,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 
-  // If user is signed in and the current path is /sign-in or /sign-up, redirect to /dashboard
+  // If user is signed in and the current path is /sign-in or /sign-up, redirect to /playground
   if (user && (pathname === '/sign-in' || pathname === '/sign-up')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/playground', request.url));
   }
 
   return response;

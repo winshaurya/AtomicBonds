@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   // if "next" is in param, use it as the redirect URL
-  const next = searchParams.get('next') ?? '/dashboard';
+  const next = searchParams.get('next') ?? '/playground';
 
   if (code) {
     const cookieStore = await cookies();
@@ -30,11 +30,22 @@ export async function GET(request: NextRequest) {
     );
 
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error && data.user) {
-      // Check if user exists in our database, create if not
-      const dbUser = await getUserBySupabaseId(data.user.id);
-      if (!dbUser) {
-        await createUser(data.user.id, data.user.email!, data.user.user_metadata?.name);
+    if (error) {
+      console.error('OAuth callback error:', error);
+      // Redirect to sign-in with error
+      return NextResponse.redirect(`${origin}/sign-in?error=oauth_failed`);
+    }
+
+    if (data.user) {
+      try {
+        // Check if user exists in our database, create if not
+        const dbUser = await getUserBySupabaseId(data.user.id);
+        if (!dbUser) {
+          await createUser(data.user.id, data.user.email!, data.user.user_metadata?.name);
+        }
+      } catch (dbError) {
+        console.error('Database error in OAuth callback:', dbError);
+        // Continue anyway, user is authenticated in Supabase
       }
     }
   }

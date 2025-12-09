@@ -41,12 +41,12 @@ export function ParametersForm({ onGenerate, loading }: ParametersFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md mx-auto md:mx-0">
       <CardHeader>
         <CardTitle>Shape Parameters</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
           <div>
             <Label htmlFor="type">Shape Type</Label>
             <select

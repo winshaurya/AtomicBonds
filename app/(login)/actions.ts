@@ -5,6 +5,8 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db/drizzle';
 import { users } from '@/lib/db/schema';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/ssr';
 import { createCheckoutSession } from '@/lib/payments/stripe';
 import { getUserBySupabaseId, createUser, addCredits } from '@/lib/db/queries';
 import { validatedActionWithUser } from '@/lib/auth/middleware';
@@ -81,6 +83,43 @@ export const handleUserAuth = validatedActionWithUser(
     return { success: true };
   }
 );
+
+// Server action to ensure user exists in database after sign-in
+export const ensureUserExists = async () => {
+  const cookieStore = await cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll() {
+          // No-op for server actions
+        },
+      },
+    }
+  );
+
+  const {
+    data: { user: supabaseUser },
+  } = await supabase.auth.getUser();
+
+  if (!supabaseUser) {
+    throw new Error('User is not authenticated');
+  }
+
+  // Check if user exists in our database
+  const dbUser = await getUserBySupabaseId(supabaseUser.id);
+  if (!dbUser) {
+    // Create user in our database
+    await createUser(supabaseUser.id, supabaseUser.email!, supabaseUser.user_metadata?.name);
+  }
+
+  return { success: true };
+};
 
 // Mock security actions (for individual user app)
 export const updatePassword = validatedActionWithUser(
